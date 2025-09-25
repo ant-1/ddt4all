@@ -88,7 +88,9 @@ def load_configuration():
         f = open("ddt4all_data/config.json", "r", encoding="UTF-8")
         config = json.loads(f.read())
         # load config as multiplatform (mac fix macOs load conf)
-        configuration["lang"] = config.get("lang", get_translator_lang())
+        lang_value = config.get("lang", get_translator_lang())
+        # Handle null/None values properly
+        configuration["lang"] = lang_value if lang_value is not None else get_translator_lang()
         configuration["dark"] = config.get("dark", False)
         configuration["socket_timeout"] = config.get("socket_timeout", False)
         
@@ -102,7 +104,11 @@ def load_configuration():
                                                            ["vlinker", "vgate", "obdlink", "obdlink_ex", "els27", "elm327"])
         configuration["enable_device_validation"] = config.get("enable_device_validation", True)
         
-        os.environ['LANG'] = configuration["lang"]
+        # Ensure LANG environment variable is set to a valid string
+        if configuration["lang"] is not None:
+            os.environ['LANG'] = configuration["lang"]
+        else:
+            os.environ['LANG'] = get_translator_lang()
         f.close()
     except Exception as e:
         print(f"Error loading configuration: {e}")
@@ -121,13 +127,20 @@ def get_translator_lang():
     loc_lang = "en_US"
     try:
         lang, enc = locale.getdefaultlocale()
-        loc_lang = lang
+        if lang is not None:
+            loc_lang = lang
     except:
         try:
             lang, enc = locale.getlocale()
-            loc_lang = lang
+            if lang is not None:
+                loc_lang = lang
         except:
             pass
+    
+    # Ensure we never return None
+    if loc_lang is None:
+        loc_lang = "en_US"
+    
     return loc_lang
 
 

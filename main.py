@@ -1398,7 +1398,7 @@ class main_window_options(widgets.QDialog):
         self.vgatebutton.toggled.connect(self.vgate)
 
         # languages setting
-        if "LANG" not in os.environ.keys():
+        if "LANG" not in os.environ.keys() or os.environ["LANG"] is None:
             os.environ["LANG"] = "en_US"
         langlayout = widgets.QHBoxLayout()
         self.langcombo = widgets.QComboBox()
@@ -1407,7 +1407,9 @@ class main_window_options(widgets.QDialog):
         langlayout.addWidget(self.langcombo)
         for s in options.lang_list:
             self.langcombo.addItem(s)
-            if options.lang_list[s].split("_")[0] == os.environ['LANG'].split("_")[0]:
+            # Add safeguard for None LANG value
+            current_lang = os.environ.get('LANG', 'en_US')
+            if current_lang and options.lang_list[s].split("_")[0] == current_lang.split("_")[0]:
                 self.langcombo.setCurrentText(s)
         # self.langcombo.setCurrentIndex(0)
         layout.addLayout(langlayout)
